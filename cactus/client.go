@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-type Catcus struct {
+type Cactus struct {
 	BaseUri    string
 	ApiKey     string
 	HttpClient *http.Client
@@ -17,11 +17,11 @@ type Catcus struct {
 	cachedJwt  string
 }
 
-func NewCatcus(baseUri string, apiKey string, client *http.Client, logLevel int) *Catcus {
+func NewCactus(baseUri string, apiKey string, client *http.Client, logLevel int) *Cactus {
 	if client == nil {
 		client = http.DefaultClient
 	}
-	return &Catcus{
+	return &Cactus{
 		BaseUri:    baseUri,
 		ApiKey:     apiKey,
 		HttpClient: client,
@@ -29,13 +29,13 @@ func NewCatcus(baseUri string, apiKey string, client *http.Client, logLevel int)
 	}
 }
 
-func (c *Catcus) Log(l string, level int) {
+func (c *Cactus) Log(l string, level int) {
 	if level > c.LogLevel {
 		log.Println(l)
 	}
 }
 
-func (c *Catcus) GetJwt() (string, CatcusError) {
+func (c *Cactus) GetJwt() (string, CatcusError) {
 	req := &CreateTokenReq{
 		GrantType:    GrantTypeRefreshToken,
 		RefreshToken: c.ApiKey,
@@ -55,14 +55,14 @@ func (c *Catcus) GetJwt() (string, CatcusError) {
 	return resp.AccessToken, nil
 }
 
-func (c *Catcus) getCachedJwt() (string, CatcusError) {
+func (c *Cactus) getCachedJwt() (string, CatcusError) {
 	if c.cachedJwt == "" {
 		return c.GetJwt()
 	}
 	return c.cachedJwt, nil
 }
 
-func (c *Catcus) get(endpoint string, params map[string]string) ([]byte, CatcusError) {
+func (c *Cactus) get(endpoint string, params map[string]string) ([]byte, CatcusError) {
 	// Assemble query string
 	queryString := ""
 	for k, v := range params {
@@ -108,7 +108,7 @@ func (c *Catcus) get(endpoint string, params map[string]string) ([]byte, CatcusE
 	}
 	return all, nil
 }
-func (c *Catcus) post(endpoint string, uriParams map[string]string, body interface{}) ([]byte, CatcusError) {
+func (c *Cactus) post(endpoint string, uriParams map[string]string, body interface{}) ([]byte, CatcusError) {
 	// Assemble query string
 	queryString := ""
 	for k, v := range uriParams {

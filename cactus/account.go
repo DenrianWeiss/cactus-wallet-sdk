@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func (c *Catcus) GetEthAccounts(chainId int, account ...string) (resp *GetEthAccountsResp, err error) {
+func (c *Cactus) GetEthAccounts(chainId int, account ...string) (resp *GetEthAccountsResp, err error) {
 	params := map[string]string{
 		"chainId": strconv.Itoa(chainId),
 	}
@@ -28,7 +28,7 @@ func (c *Catcus) GetEthAccounts(chainId int, account ...string) (resp *GetEthAcc
 // CreateTransaction creates a transaction
 // chainId: required
 // req: transaction details
-func (c *Catcus) CreateTransaction(chainId string, req *SendTransactionReq) (resp *SendTransactionResp, err error) {
+func (c *Cactus) CreateTransaction(chainId string, req *SendTransactionReq) (resp *SendTransactionResp, err error) {
 	r, _ := json.Marshal(req)
 	post, err := c.post("/transactions", map[string]string{"chainId": chainId}, bytes.NewReader(r))
 	if err != nil {
@@ -46,7 +46,7 @@ func (c *Catcus) CreateTransaction(chainId string, req *SendTransactionReq) (res
 // from: optional, filter from address
 // custodianTxId(transactionId): optional, filtering transactions by transactionId, this transactionId is the custodian_transactionId returned by Cactus Custody.
 // transactionHash: optional, filter by transaction hash
-func (c *Catcus) GetTransaction(chainId string, from string, custodianTxId string, transactionHash string) (resp *GetTransactionResp, err error) {
+func (c *Cactus) GetTransaction(chainId string, from string, custodianTxId string, transactionHash string) (resp *GetTransactionResp, err error) {
 	params := map[string]string{
 		"chainId": chainId,
 	}
