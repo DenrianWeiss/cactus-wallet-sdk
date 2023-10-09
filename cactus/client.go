@@ -2,161 +2,115 @@ package cactus
 
 import (
 	"bytes"
+	"crypto/ecdsa"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
-	"errors"
+	"github.com/DenrianWeiss/cactus-wallet-sdk/utils"
 	"io"
-	"log"
 	"net/http"
 )
 
 type Cactus struct {
 	BaseUri    string
-	ApiKey     string
+	XApiKey    string
+	ApiKeyID   string
+	PrivateKey *ecdsa.PrivateKey
 	HttpClient *http.Client
 	LogLevel   int
-	cachedJwt  string
 }
 
-func NewCactus(baseUri string, apiKey string, client *http.Client, logLevel int) *Cactus {
+func NewCactus(baseUri string, xApiKey string, apiKeyId string, privateKey *ecdsa.PrivateKey, client *http.Client, logLevel int) *Cactus {
 	if client == nil {
 		client = http.DefaultClient
 	}
 	return &Cactus{
 		BaseUri:    baseUri,
-		ApiKey:     apiKey,
+		XApiKey:    xApiKey,
+		ApiKeyID:   apiKeyId,
+		PrivateKey: privateKey,
 		HttpClient: client,
 		LogLevel:   logLevel,
 	}
 }
 
-func (c *Cactus) Log(l string, level int) {
-	if level > c.LogLevel {
-		log.Println(l)
-	}
-}
-
-func (c *Cactus) GetJwt() (string, CatcusError) {
-	req := &CreateTokenReq{
-		GrantType:    GrantTypeRefreshToken,
-		RefreshToken: c.ApiKey,
-	}
-	r, _ := json.Marshal(req)
-	post, err := c.HttpClient.Post(c.BaseUri+"/token", "application/json", bytes.NewReader(r))
-	if err != nil {
-		return "", err
-	}
-	defer post.Body.Close()
-	resp := &CreateTokenResp{}
-	err = json.NewDecoder(post.Body).Decode(resp)
-	if err != nil || resp == nil || resp.AccessToken == "" {
-		return "", CatcusError(errors.New(ErrorCreatingJwt))
-	}
-	c.cachedJwt = resp.AccessToken
-	return resp.AccessToken, nil
-}
-
-func (c *Cactus) getCachedJwt() (string, CatcusError) {
-	if c.cachedJwt == "" {
-		return c.GetJwt()
-	}
-	return c.cachedJwt, nil
-}
-
-func (c *Cactus) get(endpoint string, params map[string]string) ([]byte, CatcusError) {
-	// Assemble query string
-	queryString := ""
-	for k, v := range params {
-		queryString += k + "=" + v + "&"
-	}
-	// Remove last &
-	queryString = queryString[:len(queryString)-1]
-	// Assemble request
-	requestPath := c.BaseUri + endpoint + "?" + queryString
-	// Add http header
-	request, err := http.NewRequest(http.MethodGet, requestPath, nil)
+func (c *Cactus) post(path string, body map[string]interface{}) ([]byte, error) {
+	// Encode body
+	bodyBytes, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	// Add Content-Type
-	request.Header.Add("Content-Type", "application/json")
-	// Add JWT
-	jwt, err := c.GetJwt()
-	request.Header.Add("Authorization", "Bearer "+jwt)
+	// Hash Request Body
+	bodyHash := sha256.Sum256(bodyBytes)
+	bodyHashBase := base64.StdEncoding.EncodeToString(bodyHash[:])
+
+	// Generate sign string
+	/// Get TimeStamp
+	currentTime := utils.GetCurrentGmtTime()
+	/// Sign
+	nonce := utils.GenerateUuid()
+	signString := utils.GenerateSignString(http.MethodPost, bodyBytes, c.XApiKey, nonce, path, "", currentTime)
+	// Sign
+	header, err := utils.GenerateAuthorizationHeader([]byte(signString), c.ApiKeyID, c.PrivateKey)
+	if err != nil {
+		return nil, err
+	}
+	// Assemble Req
+	req, err := http.NewRequest(http.MethodPost, c.BaseUri+path, bytes.NewReader(bodyBytes))
+	// Add headers
+	req.Header.Add("Accept", utils.Accept)
+	req.Header.Add("Content-Type", utils.RequestContentType)
+	req.Header.Add("x-api-key", c.XApiKey)
+	req.Header.Add("x-api-nonce", nonce)
+	req.Header.Add("Content-SHA256", bodyHashBase)
+	req.Header.Add("Date", currentTime)
+	req.Header.Add("Authorization", header)
 	// Send request
-	response, err := c.HttpClient.Do(request)
-	// Handle JWT Expired
-	if response != nil && response.StatusCode == http.StatusForbidden {
-		// Refresh JWT
-		jwt, err = c.GetJwt()
-		// Let's try again
-		// Delete old JWT
-		request.Header.Del("Authorization")
-		request.Header.Add("Authorization", "Bearer "+jwt)
-		response, err = c.HttpClient.Do(request)
-		if err != nil {
-			return nil, CatcusError(err)
-		}
-	}
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return nil, CatcusError(err)
+		return nil, err
 	}
-	defer response.Body.Close()
+	defer resp.Body.Close()
 	// Read response
-	all, err := io.ReadAll(response.Body)
+	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, CatcusError(err)
+		return nil, err
 	}
 	return all, nil
 }
-func (c *Cactus) post(endpoint string, uriParams map[string]string, body interface{}) ([]byte, CatcusError) {
-	// Assemble query string
-	queryString := ""
-	for k, v := range uriParams {
-		queryString += k + "=" + v + "&"
-	}
-	// Remove last &
-	queryString = queryString[:len(queryString)-1]
-	// Assemble request
-	requestPath := c.BaseUri + endpoint + "?" + queryString
-	// Add http header
-	request, err := http.NewRequest(http.MethodPost, requestPath, nil)
+
+func (c *Cactus) get(path string, params map[string]string) ([]byte, error) {
+	// Encode url params
+	paramQ := utils.EncodeGetQuery(params)
+	// Generate sign string
+	/// Get TimeStamp
+	currentTime := utils.GetCurrentGmtTime()
+	/// Sign
+	nonce := utils.GenerateUuid()
+	signString := utils.GenerateSignString(http.MethodGet, nil, c.XApiKey, nonce, path, paramQ, currentTime)
+	// Add headers
+	header, err := utils.GenerateAuthorizationHeader([]byte(signString), c.ApiKeyID, c.PrivateKey)
 	if err != nil {
 		return nil, err
 	}
-	// Add Content-Type
-	request.Header.Add("Content-Type", "application/json")
-	// Add JWT
-	jwt, err := c.GetJwt()
-	request.Header.Add("Authorization", "Bearer "+jwt)
-	// Add body
-	r, err := json.Marshal(body)
-	if err != nil {
-		return nil, CatcusError(err)
-	}
-	request.Body = io.NopCloser(bytes.NewReader(r))
+	// Assemble Req
+	req, err := http.NewRequest(http.MethodGet, c.BaseUri+path+"?"+paramQ, nil)
+	req.Header.Add("Accept", utils.Accept)
+	req.Header.Add("Content-Type", utils.RequestContentType)
+	req.Header.Add("x-api-key", c.XApiKey)
+	req.Header.Add("x-api-nonce", nonce)
+	req.Header.Add("Date", currentTime)
+	req.Header.Add("Authorization", header)
 	// Send request
-	response, err := c.HttpClient.Do(request)
-	// Handle JWT Expired
-	if response != nil && response.StatusCode == http.StatusForbidden {
-		// Refresh JWT
-		jwt, err = c.GetJwt()
-		// Let's try again
-		// Delete old JWT
-		request.Header.Del("Authorization")
-		request.Header.Add("Authorization", "Bearer "+jwt)
-		response, err = c.HttpClient.Do(request)
-		if err != nil {
-			return nil, CatcusError(err)
-		}
-	}
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return nil, CatcusError(err)
+		return nil, err
 	}
-	defer response.Body.Close()
+	defer resp.Body.Close()
 	// Read response
-	all, err := io.ReadAll(response.Body)
+	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, CatcusError(err)
+		return nil, err
 	}
 	return all, nil
 }
