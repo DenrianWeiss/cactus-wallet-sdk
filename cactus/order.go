@@ -278,6 +278,8 @@ type CancelOrderResp struct {
 // CancelOrder cancels the order
 // bId: business id
 // orderNo: order no
+// level: replace by fee level
+// gasPrice: gas price, required if level is custom
 func (c *Cactus) CancelOrder(bId string, orderNo string, level constants.ReplaceByFeeLevel, gasPrice float64) (*CancelOrderResp, error) {
 	path := fmt.Sprintf(CancelOrderUrl, bId, orderNo)
 	param := map[string]interface{}{
