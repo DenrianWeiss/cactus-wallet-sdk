@@ -32,3 +32,20 @@ const (
 
 	OrderTypeNotUsed OrderType = -1
 )
+
+type FeeLevelType string
+
+const (
+	FeeLevelTypeLow    FeeLevelType = "LOW"
+	FeeLevelTypeNormal FeeLevelType = "NORMAL"
+	FeeLevelTypeHigh   FeeLevelType = "HIGHER"
+	FeeLevelTypeCustom FeeLevelType = "CUSTOM"
+)
+
+type MemoType string
+
+const (
+	MemoTypeNone MemoType = "MEMO_NONE"
+	MemoTypeText MemoType = "MEMO_TEXT"
+	MemoTypeHash MemoType = "MEMO_HASH"
+)
