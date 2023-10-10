@@ -78,3 +78,10 @@ const (
 	ReplaceByFeeLevel3 ReplaceByFeeLevel = "LEVEL3"
 	ReplaceByFeeCustom ReplaceByFeeLevel = "CUSTOM"
 )
+
+type SignatureVersion string
+
+const (
+	SignatureVersionV4       SignatureVersion = "V4"
+	SignatureVersionPersonal SignatureVersion = "personalSign"
+)
