@@ -85,12 +85,13 @@ func (c *Cactus) post(path string, body map[string]interface{}) ([]byte, error) 
 func (c *Cactus) get(path string, params map[string]string) ([]byte, error) {
 	// Encode url params
 	paramQ := utils.EncodeGetQuery(params)
+	paramEncode := utils.EncodeGetParams(params)
 	// Generate sign string
 	/// Get TimeStamp
 	currentTime := utils.GetCurrentGmtTime()
 	/// Sign
 	nonce := utils.GenerateUuid()
-	signString := utils.GenerateSignString(http.MethodGet, nil, c.XApiKey, nonce, path, paramQ, currentTime)
+	signString := utils.GenerateSignString(http.MethodGet, nil, c.XApiKey, nonce, path, paramEncode, currentTime)
 	// Add headers
 	header, err := utils.GenerateAuthorizationHeader([]byte(signString), c.ApiKeyID, c.PrivateKey)
 	if err != nil {
