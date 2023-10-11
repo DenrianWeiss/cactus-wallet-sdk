@@ -92,6 +92,9 @@ func EncodeGetQuery(req map[string]string) string {
 		result += key + "=" + req[key] + "&"
 	}
 	// remove the last "&"
+	if len(result) == 0 {
+		return result
+	}
 	return result[0 : len(result)-1]
 }
 

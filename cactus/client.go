@@ -91,6 +91,7 @@ func (c *Cactus) get(path string, params map[string]string) ([]byte, error) {
 	// Add headers
 	header, err := utils.GenerateAuthorizationHeader([]byte(signString), c.ApiKeyID, c.PrivateKey)
 	if err != nil {
+		c.Log(1, err.Error())
 		return nil, err
 	}
 	// Assemble Req
@@ -104,13 +105,22 @@ func (c *Cactus) get(path string, params map[string]string) ([]byte, error) {
 	// Send request
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
+		c.Log(1, err.Error())
 		return nil, err
 	}
+	c.Log(0, resp.Status)
 	defer resp.Body.Close()
 	// Read response
 	all, err := io.ReadAll(resp.Body)
+	c.Log(0, string(all))
 	if err != nil {
 		return nil, err
 	}
 	return all, nil
+}
+
+func (c *Cactus) Log(level int, message string) {
+	if c.LogLevel >= level {
+		println(message)
+	}
 }
