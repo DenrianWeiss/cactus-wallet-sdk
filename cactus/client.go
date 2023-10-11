@@ -68,12 +68,15 @@ func (c *Cactus) post(path string, body map[string]interface{}) ([]byte, error) 
 	// Send request
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
+		c.Log(1, "Post Error"+err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
 	// Read response
 	all, err := io.ReadAll(resp.Body)
+	c.Log(0, string(all))
 	if err != nil {
+		c.Log(1, "Post Read Error"+err.Error())
 		return nil, err
 	}
 	return all, nil

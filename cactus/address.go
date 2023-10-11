@@ -29,12 +29,12 @@ type ApplyNewAddressResp struct {
 // coinName: coin name, optional
 // addressNum: number of addresses to apply
 // addressType: address type, only accept "NORMAL_ADDRESS"
-func (c *Cactus) ApplyNewAddress(bId string, wallerCode string, coinName constants.CactusToken, addressNum int, addressType string) (*ApplyNewAddressResp, error) {
+func (c *Cactus) ApplyNewAddress(bId string, walletCode string, coinName constants.CactusToken, addressNum int, addressType string) (*ApplyNewAddressResp, error) {
 	req := map[string]interface{}{
 		"address_num":  addressNum,
 		"address_type": addressType,
 		"b_id":         bId,
-		"wallet_code":  wallerCode,
+		"wallet_code":  walletCode,
 	}
 	if coinName != "" {
 		req["coin_name"] = string(coinName)
