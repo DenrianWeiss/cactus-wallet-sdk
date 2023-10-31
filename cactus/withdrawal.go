@@ -21,23 +21,23 @@ type EstimateWithdrawalFeeResp struct {
 }
 
 type WithdrawalArgsFeeReq struct {
-	FromAddress         string                 `json:"from_address;omitempty"`
+	FromAddress         string                 `json:"from_address,omitempty"`
 	FromWalletCode      string                 `json:"from_wallet_code"`
-	CoinName            constants.CactusToken  `json:"coin_name;omitempty"`
-	OrderNo             string                 `json:"order_no;omitempty"`
-	Description         string                 `json:"description;omitempty"`
-	FeeRateLevel        constants.FeeLevelType `json:"fee_rate_level;omitempty"`
-	FeeRate             float64                `json:"fee_rate;omitempty"`
+	CoinName            constants.CactusToken  `json:"coin_name,omitempty"`
+	OrderNo             string                 `json:"order_no,omitempty"`
+	Description         string                 `json:"description,omitempty"`
+	FeeRateLevel        constants.FeeLevelType `json:"fee_rate_level,omitempty"`
+	FeeRate             float64                `json:"fee_rate,omitempty"`
 	DestAddressItemList DestAddressItem        `json:"dest_address_item_list"`
 }
 
 type DestAddressItem struct {
 	Amount          int                `json:"amount"`
 	DestAddress     string             `json:"dest_address"`
-	MemoType        string             `json:"memo_type;omitempty"`
-	Memo            constants.MemoType `json:"memo;omitempty"`
+	MemoType        string             `json:"memo_type,omitempty"`
+	Memo            constants.MemoType `json:"memo,omitempty"`
 	IsAllWithdrawal bool               `json:"is_all_withdrawal"`
-	Remark          string             `json:"remark;omitempty"`
+	Remark          string             `json:"remark,omitempty"`
 }
 
 // EstimateWithdrawalFee estimates the withdrawal fee

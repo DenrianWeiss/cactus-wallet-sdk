@@ -22,10 +22,10 @@ type CreateContractOrderReq struct {
 	Amount               string              `json:"amount"`
 	Chain                constants.ChainName `json:"chain"`
 	ContractData         string              `json:"contract_data"`
-	GasPriceLevel        string              `json:"gas_price_level;omitempty"`
-	GasPrice             int64               `json:"gas_price;omitempty"`
-	MaxFeePerGas         int64               `json:"max_fee_per_gas;omitempty"`
-	MaxPriorityFeePerGas int64               `json:"max_priority_fee_per_gas;omitempty"`
+	GasPriceLevel        string              `json:"gas_price_level,omitempty"`
+	GasPrice             int64               `json:"gas_price,omitempty"`
+	MaxFeePerGas         int64               `json:"max_fee_per_gas,omitempty"`
+	MaxPriorityFeePerGas int64               `json:"max_priority_fee_per_gas,omitempty"`
 	GasLimit             int                 `json:"gas_limit"`
 	Description          string              `json:"description"`
 }
@@ -71,7 +71,7 @@ type CreateSignOrderReq struct {
 	Payload          interface{}                `json:"payload"`
 	Chain            constants.ChainName        `json:"chain"`
 	OrderNo          string                     `json:"order_no"`
-	Description      string                     `json:"description;omitempty"`
+	Description      string                     `json:"description,omitempty"`
 }
 
 type CreateSignOrderResp struct {
